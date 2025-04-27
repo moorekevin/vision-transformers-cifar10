@@ -348,7 +348,7 @@ list_acc = []
 if usewandb:
     wandb.watch(net)
 
-net.cuda()
+net.to(device)
 for epoch in range(start_epoch, args.n_epochs):
     start = time.time()
     trainloss = train(epoch)
