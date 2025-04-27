@@ -1,3 +1,5 @@
+torchvision
+pandas
 vit-pytorch
 einops
 odach
