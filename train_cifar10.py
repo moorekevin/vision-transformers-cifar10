@@ -71,10 +71,10 @@ if __name__ == "__main__":
     bs = int(args.bs)
     imsize = int(args.size)
 
-    use_amp = not args.noamp
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    use_amp = not args.noamp and (device != 'cpu')
     aug = args.noaug
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     best_acc = 0  # best test accuracy
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
@@ -356,7 +356,7 @@ if __name__ == "__main__":
         trainloss = train(epoch)
         val_loss, acc = test(epoch)
 
-        scheduler.step(epoch-1)  # step cosine scheduling
+        scheduler.step()
 
         list_loss.append(val_loss)
         list_acc.append(acc)
