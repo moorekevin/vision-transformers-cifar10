@@ -3,6 +3,7 @@
 
 Train CIFAR10 with PyTorch and Vision Transformers!
 written by @kentaroy47, @arutema47
+modified by @moorekevin
 
 '''
 
@@ -14,6 +15,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import numpy as np
+import platform
 
 import torchvision
 import torchvision.transforms as transforms
@@ -71,8 +73,21 @@ if __name__ == "__main__":
     bs = int(args.bs)
     imsize = int(args.size)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    use_amp = not args.noamp and (device != 'cpu')
+    device = (
+        'mps' if torch.backends.mps.is_available() and platform.system() == 'Darwin'
+        else 'cuda' if torch.cuda.is_available()
+        else 'cpu'
+    )
+
+    if device == 'cuda':
+        from torch.cuda.amp import autocast, GradScaler
+        def autocast_context(): return autocast(enabled=use_amp)
+    else:
+        from torch.amp import autocast, GradScaler
+        def autocast_context(): return autocast(device_type=device, enabled=use_amp)
+
+    use_amp = not args.noamp and device == 'cuda'
+
     aug = args.noaug
 
     best_acc = 0  # best test accuracy
@@ -273,7 +288,7 @@ if __name__ == "__main__":
         optimizer, args.n_epochs)
 
     # Training
-    scaler = torch.cuda.amp.GradScaler(enabled=use_amp)
+    scaler = GradScaler(enabled=use_amp)
 
     def train(epoch):
         print('\nEpoch: %d' % epoch)
@@ -284,7 +299,7 @@ if __name__ == "__main__":
         for batch_idx, (inputs, targets) in enumerate(trainloader):
             inputs, targets = inputs.to(device), targets.to(device)
             # Train with amp
-            with torch.cuda.amp.autocast(enabled=use_amp):
+            with autocast_context():
                 outputs = net(inputs)
                 loss = criterion(outputs, targets)
             scaler.scale(loss).backward()
