@@ -28,7 +28,7 @@ On macOS, Python’s multiprocessing module requires that the main script logic 
 
 ### (2) Added support for torch.mps on Apple Silicon (M1/M2)
 
-Training Performance: CPU vs MPS (MacBook Pro, Apple Silicon M2 Pro)
+Training Performance: CPU vs MPS (MacBook Pro, Apple Silicon M2 Pro) for one epoch on vit_small
 
 | Metric                                | CPU                    | MPS                   |
 | ------------------------------------- | ---------------------- | --------------------- |
