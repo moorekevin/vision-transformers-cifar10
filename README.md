@@ -28,7 +28,7 @@ On macOS, Python’s multiprocessing module requires that the main script logic 
 
 ### (2) Added support for torch.mps on Apple Silicon (M1/M2)
 
-Training Performance: CPU vs MPS (MacBook Pro, Apple Silicon M2 Pro) for one epoch on vit_small
+Training Performance: CPU vs MPS (MacBook Pro, Apple Silicon M2 Pro) for one epoch on vit_small with lr=1e-4
 
 | Metric                                | CPU                    | MPS                   |
 | ------------------------------------- | ---------------------- | --------------------- |
@@ -40,6 +40,23 @@ Training Performance: CPU vs MPS (MacBook Pro, Apple Silicon M2 Pro) for one epo
 | **Final Validation Accuracy**         | 34.82%                 | 34.55%                |
 | **Speedup (Epoch Time)**              | ~7.2x faster           |                       |
 | **Backend**                           | `torch.device("cpu")`  | `torch.device("mps")` |
+
+### (3) Added Support for [Adan Optimizer](https://github.com/lucidrains/Adan-pytorch)
+
+Integrated Adan via `adan-pytorch` and compared two learning rates on `vit_small`.
+
+**Training performance comparison**: Adan optimizer on `vit_small` using Apple M2 Pro (`torch.mps`) for one epoch
+
+| Metric                        | Adan (lr = 1e-4)     | Adan (lr = 1e-3)     |
+| ----------------------------- | -------------------- | -------------------- |
+| **Epoch 0 Duration**          | ~1 minute 29 seconds | ~1 minute 30 seconds |
+| **Final Training Accuracy**   | 13.84%               | 18.13%               |
+| **Validation Step Time**      | ~58ms                | ~57ms                |
+| **Final Validation Accuracy** | 28.52%               | 38.27%               |
+| **Validation Loss**           | 198.64               | 171.08               |
+| **Optimizer Source**          | `adan-pytorch`       | `adan-pytorch`       |
+
+> **Note**: Increasing the learning rate from 1e-4 to 1e-3 significantly improved convergence after a single epoch.
 
 # Usage example
 
