@@ -5,6 +5,8 @@ metric:
   goal: maximize
 
 parameters:
+  net:
+    value: vit_small
   n_epochs:
     value: 5
   opt:

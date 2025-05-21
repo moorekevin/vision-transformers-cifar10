@@ -81,6 +81,7 @@ if __name__ == "__main__":
         # wandb.config.update(args)
         # For overwriting arguments in a wandb sweep
         config = wandb.config
+        args.net = config.net
         args.lr = config.lr
         args.opt = config.opt
         args.adan_beta1 = config.adan_beta1
