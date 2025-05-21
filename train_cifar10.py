@@ -58,6 +58,15 @@ parser.add_argument('--dimhead', default="512", type=int)
 parser.add_argument('--convkernel', default='8', type=int,
                     help="parameter for convmixer")
 
+parser.add_argument('--adan_weight_decay', default=0.02,
+                    type=float, help='weight decay for Adan')
+parser.add_argument('--adan_beta1', default=0.02,
+                    type=float, help='beta1 for Adan')
+parser.add_argument('--adan_beta2', default=0.08,
+                    type=float, help='beta2 for Adan')
+parser.add_argument('--adan_beta3', default=0.01,
+                    type=float, help='beta3 for Adan')
+
 args = parser.parse_args()
 
 if __name__ == "__main__":
@@ -68,8 +77,17 @@ if __name__ == "__main__":
         import wandb
         watermark = "{}_lr{}".format(args.net, args.lr)
         wandb.init(project="cifar10-challange",
-                   name=watermark)
-        wandb.config.update(args)
+                   name=watermark, config=args)
+        # wandb.config.update(args)
+        # For overwriting arguments in a wandb sweep
+        config = wandb.config
+        args.lr = config.lr
+        args.opt = config.opt
+        args.adan_beta1 = config.adan_beta1
+        args.adan_beta2 = config.adan_beta2
+        args.adan_beta3 = config.adan_beta3
+        args.adan_weight_decay = config.adan_weight_decay
+        args.n_epochs = wandb.config.n_epochs
 
     bs = int(args.bs)
     imsize = int(args.size)
@@ -285,7 +303,9 @@ if __name__ == "__main__":
         optimizer = optim.SGD(net.parameters(), lr=args.lr)
     elif args.opt == "adan":
         optimizer = Adan(
-            net.parameters(), lr=args.lr, betas=(0.02, 0.08, 0.01), weight_decay=0.02)
+            net.parameters(), lr=args.lr,
+            betas=(args.adan_beta1, args.adan_beta2, args.adan_beta3),
+            weight_decay=args.adan_weight_decay)
 
     # use cosine scheduling
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
