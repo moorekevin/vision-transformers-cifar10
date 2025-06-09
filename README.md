@@ -12,7 +12,7 @@ Thank you to Kentaro Yoshioka for the original repository playground that this f
 }
 ```
 
-# My updates to the code
+# My work
 
 ### (1) Fixed compatibility with multiprocessing on macOS
 

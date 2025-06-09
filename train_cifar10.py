@@ -75,7 +75,11 @@ if __name__ == "__main__":
     usewandb = ~args.nowandb
     if usewandb:
         import wandb
-        watermark = "{}_lr{}".format(args.net, args.lr)
+        watermark = (f"{args.net}_lr{args.lr:.0e}_"
+                     f"b1={args.adan_beta1:.3f}_"
+                     f"b2={args.adan_beta2:.3f}_"
+                     f"b3={args.adan_beta3:.3f}_"
+                     f"wd{args.adan_weight_decay:.3f}")
         wandb.init(project="cifar10-challange",
                    name=watermark, config=args)
         # wandb.config.update(args)
