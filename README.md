@@ -1,14 +1,6 @@
-# vision-transformers-cifar10
+# Vision Transformers on Cifar10
 
-This is your go-to playground for training Vision Transformers (ViT) and its related models on CIFAR-10, a common benchmark dataset in computer vision.
-
-The whole codebase is implemented in Pytorch, which makes it easier for you to tweak and experiment. Over the months, we've made several notable updates including adding different models like ConvMixer, CaiT, ViT-small, SwinTransformers, and MLP mixer. We've also adapted the default training settings for ViT to fit better with the CIFAR-10 dataset.
-
-Using the repository is straightforward - all you need to do is run the `train_cifar10.py` script with different arguments, depending on the model and training parameters you'd like to use.
-
-Thanks, the repo has been used in [10+ papers!](https://scholar.google.co.jp/scholar?hl=en&as_sdt=0%2C5&q=vision-transformers-cifar10&btnG=)
-
-Please use this citation format if you use this in your research.
+Thank you to Kentaro Yoshioka for the original repository playground that this fork is based on.
 
 ```
 @misc{yoshioka2024visiontransformers,
@@ -20,7 +12,7 @@ Please use this citation format if you use this in your research.
 }
 ```
 
-# Kevin Moore updates
+# My updates to the code
 
 ### (1) Fixed compatibility with multiprocessing on macOS
 
@@ -58,7 +50,69 @@ Integrated Adan via `adan-pytorch` and compared two learning rates on `vit_small
 
 > **Note**: Increasing the learning rate from 1e-4 to 1e-3 significantly improved convergence after a single epoch.
 
-# Usage example
+### (4) Hyperparameter Sweep for Adan Optimizer
+
+To find good hyperparameters for the Adan optimizer on ViT with CIFAR-10, I ran a WandB sweep using Bayesian optimization (see full configuration at `sweeps/adan_betas_decay.yaml`)
+
+The sweep tested different values for:
+
+- learning rate (lr)
+- the three beta values (adan_beta1, adan_beta2, adan_beta3)
+- weight decay (adan_weight_decay)
+
+The value ranges were based on the original Adan paper, and quantized distributions were used to avoid overly small or noisy values. Each run trained for 5 epochs. I also used early stopping (Hyperband) to skip bad runs faster. The goal was to maximize validation accuracy.
+
+# Results
+
+## My results
+
+Trained on Apple M2 Pro (`torch.mps`)
+
+### Training performance comparison using Adan
+
+- Adan optimizer on `vit_small` for one epoch
+
+| Metric                        | Adan (lr = 1e-4)     | Adan (lr = 1e-3)     |
+| ----------------------------- | -------------------- | -------------------- |
+| **Epoch 0 Duration**          | ~1 minute 29 seconds | ~1 minute 30 seconds |
+| **Final Training Accuracy**   | 13.84%               | 18.13%               |
+| **Validation Step Time**      | ~58ms                | ~57ms                |
+| **Final Validation Accuracy** | 28.52%               | 38.27%               |
+| **Validation Loss**           | 198.64               | 171.08               |
+| **Optimizer Source**          | `adan-pytorch`       | `adan-pytorch`       |
+
+### Top 3 Sweep Results
+
+- Adan Optimizer on `vit_small` for 5 Epochs
+- See sweep file under `sweeps/adan_betas_decay.yaml`
+
+| Rank  | val_acc | lr     | adan_beta1 | adan_beta2 | adan_beta3 | weight_decay |
+| ----- | ------- | ------ | ---------- | ---------- | ---------- | ------------ |
+| Top 1 | 53.01%  | 0.0009 | 0.035      | 0.11       | 0.015      | 0.02         |
+| Top 2 | 52.64%  | 0.0011 | 0.035      | 0.09       | 0.015      | 0.02         |
+| Top 3 | 52.62%  | 0.0009 | 0.04       | 0.12       | 0.02       | 0.015        |
+
+## Original results from base directory
+
+|                                                                           | Accuracy |                                                                                 Train Log                                                                                  |
+| :-----------------------------------------------------------------------: | :------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                ViT patch=2                                |   80%    |                                                                                                                                                                            |
+|                           ViT patch=4 Epoch@200                           |   80%    | [Log](https://wandb.ai/arutema47/cifar10-challange/reports/Untitled-Report--VmlldzoxNjU3MTU2?accessToken=3y3ib62e8b9ed2m2zb22dze8955fwuhljl5l4po1d5a3u9b7yzek1tz7a0d4i57r) |
+|                           ViT patch=4 Epoch@500                           |   88%    | [Log](https://wandb.ai/arutema47/cifar10-challange/reports/Untitled-Report--VmlldzoxNjU3MTU2?accessToken=3y3ib62e8b9ed2m2zb22dze8955fwuhljl5l4po1d5a3u9b7yzek1tz7a0d4i57r) |
+|                                ViT patch=8                                |   30%    |                                                                                                                                                                            |
+|                                 ViT small                                 |   80%    |                                                                                                                                                                            |
+|                                 MLP mixer                                 |   88%    |                                                                                                                                                                            |
+|                                   CaiT                                    |   80%    |                                                                                                                                                                            |
+|                                  Swin-t                                   |   90%    |                                                                                                                                                                            |
+|                         ViT small (timm transfer)                         |  97.5%   |                                                                                                                                                                            |
+|                         ViT base (timm transfer)                          |  98.5%   |                                                                                                                                                                            |
+| [ConvMixerTiny(no pretrain)](https://openreview.net/forum?id=TVHS5Y4dNvM) |  96.3%   |    [Log](https://wandb.ai/arutema47/cifar10-challange/reports/convmixer--VmlldzoyMjEyOTk1?accessToken=2w9nox10so11ixf7t0imdhxq1rf1ftgzyax4r9h896iekm2byfifz3b7hkv3klrt)    |
+|                                 resnet18                                  |   93%    |                                                                                                                                                                            |
+|                             resnet18+randaug                              |   95%    | [Log](https://wandb.ai/arutema47/cifar10-challange/reports/Untitled-Report--VmlldzoxNjU3MTYz?accessToken=968duvoqt6xq7ep75ob0yppkzbxd0q03gxy2apytryv04a84xvj8ysdfvdaakij2) |
+
+# Instructions from original repository
+
+## Usage example
 
 `python train_cifar10.py` # vit-patchsize-4
 
@@ -80,32 +134,7 @@ Integrated Adan via `adan-pytorch` and compared two learning rates on `vit_small
 
 `python train_cifar10.py --net res18` # resnet18+randaug
 
-# Results..
-
-|                                                                           | Accuracy |                                                                                 Train Log                                                                                  |
-| :-----------------------------------------------------------------------: | :------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|                                ViT patch=2                                |   80%    |                                                                                                                                                                            |
-|                           ViT patch=4 Epoch@200                           |   80%    | [Log](https://wandb.ai/arutema47/cifar10-challange/reports/Untitled-Report--VmlldzoxNjU3MTU2?accessToken=3y3ib62e8b9ed2m2zb22dze8955fwuhljl5l4po1d5a3u9b7yzek1tz7a0d4i57r) |
-|                           ViT patch=4 Epoch@500                           |   88%    | [Log](https://wandb.ai/arutema47/cifar10-challange/reports/Untitled-Report--VmlldzoxNjU3MTU2?accessToken=3y3ib62e8b9ed2m2zb22dze8955fwuhljl5l4po1d5a3u9b7yzek1tz7a0d4i57r) |
-|                                ViT patch=8                                |   30%    |                                                                                                                                                                            |
-|                                 ViT small                                 |   80%    |                                                                                                                                                                            |
-|                                 MLP mixer                                 |   88%    |                                                                                                                                                                            |
-|                                   CaiT                                    |   80%    |                                                                                                                                                                            |
-|                                  Swin-t                                   |   90%    |                                                                                                                                                                            |
-|                         ViT small (timm transfer)                         |  97.5%   |                                                                                                                                                                            |
-|                         ViT base (timm transfer)                          |  98.5%   |                                                                                                                                                                            |
-| [ConvMixerTiny(no pretrain)](https://openreview.net/forum?id=TVHS5Y4dNvM) |  96.3%   |    [Log](https://wandb.ai/arutema47/cifar10-challange/reports/convmixer--VmlldzoyMjEyOTk1?accessToken=2w9nox10so11ixf7t0imdhxq1rf1ftgzyax4r9h896iekm2byfifz3b7hkv3klrt)    |
-|                                 resnet18                                  |   93%    |                                                                                                                                                                            |
-|                             resnet18+randaug                              |   95%    | [Log](https://wandb.ai/arutema47/cifar10-challange/reports/Untitled-Report--VmlldzoxNjU3MTYz?accessToken=968duvoqt6xq7ep75ob0yppkzbxd0q03gxy2apytryv04a84xvj8ysdfvdaakij2) |
-
-# Used in..
-
-- Vision Transformer Pruning [arxiv](https://arxiv.org/abs/2104.08500) [github](https://github.com/Cydia2018/ViT-cifar10-pruning)
-- Understanding why ViT trains badly on small datasets: an intuitive perspective [arxiv](https://arxiv.org/abs/2302.03751)
-- Training deep neural networks with adaptive momentum inspired by the quadratic optimization [arxiv](https://arxiv.org/abs/2110.09057)
-- [Moderate coreset: A universal method of data selection for real-world data-efficient deep learning ](https://openreview.net/forum?id=7D5EECbOaf9)
-
-# Model Export
+## Model Export
 
 This repository supports exporting trained models to ONNX and TorchScript formats for deployment purposes. You can export your trained models using the `export_models.py` script.
 
