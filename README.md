@@ -20,35 +20,11 @@ On macOS, Python’s multiprocessing module requires that the main script logic 
 
 ### (2) Added support for torch.mps on Apple Silicon (M1/M2)
 
-Training Performance: CPU vs MPS (MacBook Pro, Apple Silicon M2 Pro) for one epoch on vit_small with lr=1e-4
-
-| Metric                                | CPU                    | MPS                   |
-| ------------------------------------- | ---------------------- | --------------------- |
-| **Epoch 0 Duration**                  | ~10 minutes 40 seconds | ~1 minute 28 seconds  |
-| **Step Time (Initial)**               | ~6.6s per step         | ~0.9s per step        |
-| **Step Time (Stabilized)**            | ~6.5s per step         | ~0.91s per step       |
-| **Final Training Accuracy (Epoch 0)** | 15.05%                 | 16.04%                |
-| **Validation Step Time**              | ~387ms                 | ~58–60ms              |
-| **Final Validation Accuracy**         | 34.82%                 | 34.55%                |
-| **Speedup (Epoch Time)**              | ~7.2x faster           |                       |
-| **Backend**                           | `torch.device("cpu")`  | `torch.device("mps")` |
+See results of using MPS instead of CPU in section `(A) Training performance CPU vs MPS`
 
 ### (3) Added Support for [Adan Optimizer](https://github.com/lucidrains/Adan-pytorch)
 
-Integrated Adan via `adan-pytorch` and compared two learning rates on `vit_small`.
-
-**Training performance comparison**: Adan optimizer on `vit_small` using Apple M2 Pro (`torch.mps`) for one epoch
-
-| Metric                        | Adan (lr = 1e-4)     | Adan (lr = 1e-3)     |
-| ----------------------------- | -------------------- | -------------------- |
-| **Epoch 0 Duration**          | ~1 minute 29 seconds | ~1 minute 30 seconds |
-| **Final Training Accuracy**   | 13.84%               | 18.13%               |
-| **Validation Step Time**      | ~58ms                | ~57ms                |
-| **Final Validation Accuracy** | 28.52%               | 38.27%               |
-| **Validation Loss**           | 198.64               | 171.08               |
-| **Optimizer Source**          | `adan-pytorch`       | `adan-pytorch`       |
-
-> **Note**: Increasing the learning rate from 1e-4 to 1e-3 significantly improved convergence after a single epoch.
+Integrated Adan via `adan-pytorch` and compared two learning rates on `vit_small`. See baseline results for the integration in section `(B) Training performance comparison using Adan`.
 
 ### (4) Hyperparameter Sweep for Adan Optimizer
 
@@ -62,29 +38,58 @@ The sweep tested different values for:
 
 The value ranges were based on the original Adan paper, and quantized distributions were used to avoid overly small or noisy values. Each run trained for 5 epochs. I also used early stopping (Hyperband) to skip bad runs faster. The goal was to maximize validation accuracy.
 
+See results for sweep in section `(C) Top 3 Sweep Results`.
+
 # Results
 
-## My results
+For all results, I trained on MacBook Pro, Apple Silicon M2 Pro, and used the `vit_small` model
 
-Trained on Apple M2 Pro (`torch.mps`)
+### (A) Training performance CPU vs MPS
 
-### Training performance comparison using Adan
+Specifications:
 
-- Adan optimizer on `vit_small` for one epoch
+- Epochs: 1
+- lr: 1e-4
+
+| Metric                                | CPU                    | MPS                   |
+| ------------------------------------- | ---------------------- | --------------------- |
+| **Epoch Duration**                    | ~10 minutes 40 seconds | ~1 minute 28 seconds  |
+| **Step Time (Initial)**               | ~6.6s per step         | ~0.9s per step        |
+| **Step Time (Stabilized)**            | ~6.5s per step         | ~0.91s per step       |
+| **Final Training Accuracy (Epoch 0)** | 15.05%                 | 16.04%                |
+| **Validation Step Time**              | ~387ms                 | ~58–60ms              |
+| **Final Validation Accuracy**         | 34.82%                 | 34.55%                |
+| **Speedup (Epoch Time)**              |                        | ~7.2x faster          |
+| **Backend**                           | `torch.device("cpu")`  | `torch.device("mps")` |
+
+### (B) Training performance comparison using Adan
+
+Specifications:
+
+- Ran on `torch.mps`
+- Epochs: 1
+- Optimizer: Adan
 
 | Metric                        | Adan (lr = 1e-4)     | Adan (lr = 1e-3)     |
 | ----------------------------- | -------------------- | -------------------- |
-| **Epoch 0 Duration**          | ~1 minute 29 seconds | ~1 minute 30 seconds |
+| **Epoch Duration**            | ~1 minute 29 seconds | ~1 minute 30 seconds |
 | **Final Training Accuracy**   | 13.84%               | 18.13%               |
 | **Validation Step Time**      | ~58ms                | ~57ms                |
 | **Final Validation Accuracy** | 28.52%               | 38.27%               |
 | **Validation Loss**           | 198.64               | 171.08               |
 | **Optimizer Source**          | `adan-pytorch`       | `adan-pytorch`       |
 
-### Top 3 Sweep Results
+> **Note**: Increasing the learning rate from 1e-4 to 1e-3 significantly improved convergence after a single epoch.
 
-- Adan Optimizer on `vit_small` for 5 Epochs
-- See sweep file under `sweeps/adan_betas_decay.yaml`
+### (C) Top 3 Sweep Results
+
+Specifications:
+
+- Ran on `torch.mps`
+- Epochs: 5
+- Optimizer: Adan
+
+> **Note**: See sweep file under `sweeps/adan_betas_decay.yaml`
 
 | Rank  | val_acc | lr     | adan_beta1 | adan_beta2 | adan_beta3 | weight_decay |
 | ----- | ------- | ------ | ---------- | ---------- | ---------- | ------------ |
