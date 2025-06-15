@@ -34,15 +34,22 @@ The sweep tested different values for:
 
 - learning rate (lr)
 - the three beta values (adan_beta1, adan_beta2, adan_beta3)
-- weight decay (adan_weight_decay)
+- weight decay (weight_decay)
 
 The value ranges were based on the original Adan paper, and quantized distributions were used to avoid overly small or noisy values. Each run trained for 5 epochs. I also used early stopping (Hyperband) to skip bad runs faster. The goal was to maximize validation accuracy.
 
 See results for sweep in section `(C) Top 3 Sweep Results`.
 
+### (5) Added support for adamw
+
+### (6) 200-Epoch Training Comparison
+
+Benchmarked Adan vs Adam vs AdamW using best sweep parameters.
+See results at https://api.wandb.ai/links/moorekevin-/q9h9sjbq
+
 # Results
 
-For all results, I trained on MacBook Pro, Apple Silicon M2 Pro, and used the `vit_small` model
+For all results, I trained on Apple Silicon M2 Pro, and used the `vit_small` model
 
 ### (A) Training performance CPU vs MPS
 
@@ -97,7 +104,7 @@ Specifications:
 | Top 2 | 52.64%  | 0.0011 | 0.035      | 0.09       | 0.015      | 0.02         |
 | Top 3 | 52.62%  | 0.0009 | 0.04       | 0.12       | 0.02       | 0.015        |
 
-## Original results from base directory
+## Original results from base directory (not my results)
 
 |                                                                           | Accuracy |                                                                                 Train Log                                                                                  |
 | :-----------------------------------------------------------------------: | :------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |

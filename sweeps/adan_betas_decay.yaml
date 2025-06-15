@@ -34,7 +34,7 @@ parameters:
     min: 0.005
     max: 0.03
     q: 0.005
-  adan_weight_decay:
+  weight_decay:
     #original paper uses 0.02
     distribution: q_uniform
     min: 0.0

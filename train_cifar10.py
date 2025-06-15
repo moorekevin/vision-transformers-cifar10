@@ -58,7 +58,7 @@ parser.add_argument('--dimhead', default="512", type=int)
 parser.add_argument('--convkernel', default='8', type=int,
                     help="parameter for convmixer")
 
-parser.add_argument('--adan_weight_decay', default=0.02,
+parser.add_argument('--weight_decay', default=0.02,
                     type=float, help='weight decay for Adan')
 parser.add_argument('--adan_beta1', default=0.02,
                     type=float, help='beta1 for Adan')
@@ -75,11 +75,15 @@ if __name__ == "__main__":
     usewandb = ~args.nowandb
     if usewandb:
         import wandb
-        watermark = (f"{args.net}_lr{args.lr:.0e}_"
-                     f"b1={args.adan_beta1:.3f}_"
-                     f"b2={args.adan_beta2:.3f}_"
-                     f"b3={args.adan_beta3:.3f}_"
-                     f"wd{args.adan_weight_decay:.3f}")
+        if args.opt == "adan":
+            watermark = (f"{args.net}_lr{args.lr:.0e}_"
+                         f"b1={args.adan_beta1:.3f}_"
+                         f"b2={args.adan_beta2:.3f}_"
+                         f"b3={args.adan_beta3:.3f}_"
+                         f"wd{args.weight_decay:.3f}")
+        else:
+            watermark = (f"{args.net}_lr{args.lr:.0e}_"
+                         f"opt={args.opt}")
         wandb.init(project="cifar10-challange",
                    name=watermark, config=args)
         # wandb.config.update(args)
@@ -91,7 +95,7 @@ if __name__ == "__main__":
         args.adan_beta1 = config.adan_beta1
         args.adan_beta2 = config.adan_beta2
         args.adan_beta3 = config.adan_beta3
-        args.adan_weight_decay = config.adan_weight_decay
+        args.weight_decay = config.weight_decay
         args.n_epochs = wandb.config.n_epochs
 
     bs = int(args.bs)
@@ -304,13 +308,16 @@ if __name__ == "__main__":
 
     if args.opt == "adam":
         optimizer = optim.Adam(net.parameters(), lr=args.lr)
+    elif args.opt == "adamw":
+        optimizer = optim.AdamW(
+            net.parameters(), lr=args.lr, weight_decay=args.weight_decay)
     elif args.opt == "sgd":
         optimizer = optim.SGD(net.parameters(), lr=args.lr)
     elif args.opt == "adan":
         optimizer = Adan(
             net.parameters(), lr=args.lr,
             betas=(args.adan_beta1, args.adan_beta2, args.adan_beta3),
-            weight_decay=args.adan_weight_decay)
+            weight_decay=args.weight_decay)
 
     # use cosine scheduling
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
