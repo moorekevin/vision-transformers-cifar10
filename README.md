@@ -1,6 +1,11 @@
 # Vision Transformers on Cifar10
 
-Thank you to Kentaro Yoshioka for the original repository playground that this fork is based on.
+Created for course INF2475 at Pontifical Catholic University of Rio de Janeiro by Kevin Moore.
+
+- Best results: https://api.wandb.ai/links/moorekevin-/q9h9sjbq
+- Dataset location: /data
+
+This codebase is a fork of [kentaroy47/vision-transformers-cifar10](https://github.com/kentaroy47/vision-transformers-cifar10). Thanks to Kentaro Yoshioka for the original repository.
 
 ```
 @misc{yoshioka2024visiontransformers,
@@ -12,7 +17,7 @@ Thank you to Kentaro Yoshioka for the original repository playground that this f
 }
 ```
 
-# My work
+# Summary of my work on the repo
 
 ### (1) Fixed compatibility with multiprocessing on macOS
 
