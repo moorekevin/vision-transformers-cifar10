@@ -47,7 +47,7 @@ See results for sweep in section `(C) Top 3 Sweep Results`.
 
 ### (5) Added support for adamw
 
-### (6) 200-Epoch Training Comparison
+### (6) 100-Epoch Training Comparison
 
 Benchmarked Adan vs Adam vs AdamW using best sweep parameters.
 See results at https://api.wandb.ai/links/moorekevin-/q9h9sjbq
