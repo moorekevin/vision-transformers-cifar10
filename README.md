@@ -89,7 +89,6 @@ Specifications:
 | **Validation Step Time**      | ~58ms                | ~57ms                |
 | **Final Validation Accuracy** | 28.52%               | 38.27%               |
 | **Validation Loss**           | 198.64               | 171.08               |
-| **Optimizer Source**          | `adan-pytorch`       | `adan-pytorch`       |
 
 > **Note**: Increasing the learning rate from 1e-4 to 1e-3 significantly improved convergence after a single epoch.
 
